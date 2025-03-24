@@ -60,6 +60,8 @@ private:
     void resetTurn();     
     void applyWeakenEffect(int reduction, int turns);
     void updateEnemyEffects();
+    void applyPoisonEffect(int damage, int turns);
+    void applyThornsEffect();
 };
 
 #endif

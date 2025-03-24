@@ -7,10 +7,12 @@
 #include "entities/Enemy.h"
 #include "../scenes/MenuScene.h"
 #include "../scenes/BattleScene.h"
-#include "../scenes/GameScene.h" // Add this
+#include "../scenes/GameScene.h"
+#include "../scenes/DeckSelectionScene.h"
+#include "../ui/Card.h"
 #include <memory>
 
-enum class GameState { MENU, PLAYING, BATTLE };
+enum class GameState { MENU, DECK_SELECTION, PLAYING, BATTLE };
 
 class Game {
 public:
@@ -22,8 +24,10 @@ public:
     void setGameState(GameState newState);
     SDL_Renderer* getRenderer() const { return renderer; }
     TTF_Font* getFont() const { return font; }
-    void startBattle(const Enemy& enemy); // Updated signature
+    void startBattle(const Enemy& enemy); 
     void endBattle(bool won);
+    void setSelectedDeck(int deckId);
+    const std::vector<Card>& getSelectedDeck() const { return selectedDeck; }
     size_t currentNodeIndex;
 
 private:
@@ -34,6 +38,7 @@ private:
     InputManager inputManager;
     GameState currentState;
     std::unique_ptr<Scene> currentScene;
+    std::vector<Card> selectedDeck;
 
     void handleEvents();
     void update();

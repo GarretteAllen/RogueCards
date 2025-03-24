@@ -9,6 +9,8 @@ enum class CardEffectType {
 	Heal,
 	MultiStrike,
 	Weaken,
+	Poison,
+	Thorns,
 };
 
 struct CardEffect {

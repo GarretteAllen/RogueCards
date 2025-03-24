@@ -1,10 +1,11 @@
 #include "Game.h"
 #include <iostream>
-#include <cstdlib> // For rand()
+#include <cstdlib> 
 
 Game::Game()
     : window(nullptr), renderer(nullptr), font(nullptr), isRunning(false),
     currentState(GameState::MENU), currentScene(nullptr), currentNodeIndex(0) {
+    selectedDeck.reserve(7); 
 }
 
 bool Game::init(const char* title, int width, int height) {
@@ -33,7 +34,7 @@ bool Game::init(const char* title, int width, int height) {
     }
     isRunning = true;
     currentScene = std::make_unique<MenuScene>(renderer, font, this);
-    currentNodeIndex = 0; // Start with first node unlocked
+    currentNodeIndex = 0; 
     return true;
 }
 
@@ -59,13 +60,59 @@ void Game::clean() {
 
 void Game::setGameState(GameState newState) {
     currentState = newState;
-    if (currentState == GameState::PLAYING) {
-        currentScene = std::make_unique<GameScene>(renderer, font, this);
-    }
-    else if (currentState == GameState::MENU) {
+    if (currentState == GameState::MENU) {
         currentScene = std::make_unique<MenuScene>(renderer, font, this);
     }
+    else if (currentState == GameState::DECK_SELECTION) {
+        currentScene = std::make_unique<DeckSelectionScene>(renderer, font, this);
+    }
+    else if (currentState == GameState::PLAYING) {
+        currentScene = std::make_unique<GameScene>(renderer, font, this);
+    }
     // BATTLE handled by startBattle
+}
+
+void Game::setSelectedDeck(int deckId) {
+    selectedDeck.clear();
+    switch (deckId) {
+    case 0: // Damage Deck
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Slash", 8, 2, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Slash", 8, 2, renderer, font);
+        selectedDeck.emplace_back(0, 0, "MultiStrike", 0, 2, renderer, font, CardEffect(CardEffectType::MultiStrike, 3, 3));
+        selectedDeck.emplace_back(0, 0, "MultiStrike", 0, 2, renderer, font, CardEffect(CardEffectType::MultiStrike, 3, 3));
+        break;
+    case 1: // DoT Deck
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Poison", 0, 1, renderer, font, CardEffect(CardEffectType::Poison, 2, 3));
+        selectedDeck.emplace_back(0, 0, "Poison", 0, 1, renderer, font, CardEffect(CardEffectType::Poison, 2, 3));
+        selectedDeck.emplace_back(0, 0, "Poison", 0, 1, renderer, font, CardEffect(CardEffectType::Poison, 2, 3));
+        selectedDeck.emplace_back(0, 0, "Weaken", 0, 1, renderer, font, CardEffect(CardEffectType::Weaken, 2, 2));
+        selectedDeck.emplace_back(0, 0, "Weaken", 0, 1, renderer, font, CardEffect(CardEffectType::Weaken, 2, 2));
+        break;
+    case 2: // Defense Deck
+        selectedDeck.emplace_back(0, 0, "Block", 0, 1, renderer, font, CardEffect(CardEffectType::Armor, 5));
+        selectedDeck.emplace_back(0, 0, "Block", 0, 1, renderer, font, CardEffect(CardEffectType::Armor, 5));
+        selectedDeck.emplace_back(0, 0, "Block", 0, 1, renderer, font, CardEffect(CardEffectType::Armor, 5));
+        selectedDeck.emplace_back(0, 0, "Superb Shield", 0, 1, renderer, font, CardEffect(CardEffectType::Armor, 7, 2));
+        selectedDeck.emplace_back(0, 0, "Thorns", 0, 2, renderer, font, CardEffect(CardEffectType::Thorns, 0, 1));
+        selectedDeck.emplace_back(0, 0, "Thorns", 0, 2, renderer, font, CardEffect(CardEffectType::Thorns, 0, 1));
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        break;
+    case 3: // Balanced Deck
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
+        selectedDeck.emplace_back(0, 0, "Block", 0, 1, renderer, font, CardEffect(CardEffectType::Armor, 5));
+        selectedDeck.emplace_back(0, 0, "Heal", 0, 1, renderer, font, CardEffect(CardEffectType::Heal, 5));
+        selectedDeck.emplace_back(0, 0, "Weaken", 0, 1, renderer, font, CardEffect(CardEffectType::Weaken, 2, 2));
+        selectedDeck.emplace_back(0, 0, "Poison", 0, 1, renderer, font, CardEffect(CardEffectType::Poison, 2, 3));
+        selectedDeck.emplace_back(0, 0, "Thorns", 0, 2, renderer, font, CardEffect(CardEffectType::Thorns, 0, 1));
+        break;
+    }
 }
 
 void Game::startBattle(const Enemy& enemy) {
@@ -75,7 +122,7 @@ void Game::startBattle(const Enemy& enemy) {
 
 void Game::endBattle(bool won) {
     if (won) {
-        currentNodeIndex++; // Single increment here
+        currentNodeIndex++; 
         currentScene = std::make_unique<GameScene>(renderer, font, this);
         std::cout << "Battle won, returning to map, currentNodeIndex: " << currentNodeIndex << "\n";
         currentState = GameState::PLAYING;
@@ -84,7 +131,7 @@ void Game::endBattle(bool won) {
         std::cout << "Game Over!\n";
         currentState = GameState::MENU;
         currentScene = std::make_unique<MenuScene>(renderer, font, this);
-        currentNodeIndex = 0; // Reset on loss
+        currentNodeIndex = 0; 
     }
 }
 

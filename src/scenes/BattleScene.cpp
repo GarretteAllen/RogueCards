@@ -12,14 +12,24 @@ BattleScene::BattleScene(SDL_Renderer* renderer, TTF_Font* font, const Enemy& e,
     boardRect{ 300, 150, 200, 200 }, playerEnergy(3), maxEnergy(3), energyText(nullptr),
     skipTurnButton(350, 500, 100, 50, "Skip Turn", font, renderer, [this]() { this->endTurn(); }) {
     hand.reserve(5);
-    drawPile.reserve(10);
-    std::cout << "Skip Turn button texture: " << skipTurnButton.getTexture() << "\n";
+    drawPile.reserve(7); 
+
+    const std::vector<Card>& selectedDeck = game->getSelectedDeck();
+    std::cout << "Selected deck size: " << selectedDeck.size() << "\n";
+    for (const Card& card : selectedDeck) {
+ 
+        Card newCard(0, 0, card.getName(), card.getDamage(), card.getEnergyCost(), renderer, font, card.getEffect());
+        drawPile.push_back(std::move(newCard));
+    }
+    std::cout << "drawPile size after population: " << drawPile.size() << "\n";
+
     updateHPText();
     updatePlayerHPText();
     updateArmorText();
     updateEnergyText();
-    std::cout << "After updateEnergyText, Skip Turn button texture: " << skipTurnButton.getTexture() << "\n";
-    initializeCards();
+    for (int i = 0; i < 3 && !drawPile.empty(); ++i) {
+        drawCard();
+    }
 }
 
 BattleScene::~BattleScene() {
@@ -28,24 +38,7 @@ BattleScene::~BattleScene() {
     if (armorText) { SDL_DestroyTexture(armorText); armorText = nullptr; }
     if (energyText) { SDL_DestroyTexture(energyText); energyText = nullptr; }
 }
-void BattleScene::initializeCards() {
-    std::cout << "Initializing cards with renderer: " << renderer << ", font: " << font << std::endl;
-    drawPile.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
-    drawPile.emplace_back(0, 0, "Slash", 8, 2, renderer, font);
-    drawPile.emplace_back(0, 0, "Block", 0, 1, renderer, font, CardEffect(CardEffectType::Armor, 5));
-    drawPile.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
-    drawPile.emplace_back(0, 0, "Slash", 8, 2, renderer, font);
-    drawPile.emplace_back(0, 0, "Heal", 0, 1, renderer, font, CardEffect(CardEffectType::Heal, 5));
-    drawPile.emplace_back(0, 0, "MultiStrike", 0, 2, renderer, font, CardEffect(CardEffectType::MultiStrike, 3, 3));
-    drawPile.emplace_back(0, 0, "Weaken", 0, 1, renderer, font, CardEffect(CardEffectType::Weaken, 2, 2)); // New: Reduce damage by 2 for 2 turns
-
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(drawPile.begin(), drawPile.end(), g);
-
-    for (int i = 0; i < 3 && !drawPile.empty(); ++i) {
-        drawCard();
-    }
+void BattleScene::initializeCards() { // moved functionality to deckselectionscene.cpp
 }
 
 void BattleScene::update() {
@@ -178,27 +171,21 @@ void BattleScene::playCard(Card& card) {
     updateHPText();
 
     CardEffect effect = card.getEffect();
-    std::cout << "Effect type: " << (int)effect.type << ", value: " << effect.value << ", count: " << effect.count << std::endl;
     switch (effect.type) {
     case CardEffectType::Armor:
         playerArmor += effect.value;
-        std::cout << "Gained " << effect.value << " armor, total: " << playerArmor << std::endl;
         updateArmorText();
         break;
     case CardEffectType::Heal:
         playerHP = std::min(20, playerHP + effect.value);
-        std::cout << "Healed " << effect.value << " HP, total: " << playerHP << std::endl;
         updatePlayerHPText();
         break;
     case CardEffectType::MultiStrike:
         for (int i = 0; i < effect.count; ++i) {
             enemy.hp -= effect.value;
-            std::cout << "MultiStrike hit " << (i + 1) << " for " << effect.value << ", "
-                << enemy.name << " HP now: " << enemy.hp << std::endl;
             updateHPText();
             if (enemy.hp <= 0) {
                 battleWon = true;
-                std::cout << "Battle won!" << std::endl;
                 break;
             }
         }
@@ -206,20 +193,18 @@ void BattleScene::playCard(Card& card) {
     case CardEffectType::Weaken:
         applyWeakenEffect(effect.value, effect.count);
         break;
-    case CardEffectType::None:
+    case CardEffectType::Poison:
+        applyPoisonEffect(effect.value, effect.count);
+        break;
+    case CardEffectType::Thorns:
+        applyThornsEffect();
+        break;
     default:
         break;
     }
 
-    Card movedCard = std::move(card);
-    discard.push_back(std::move(movedCard));
-    std::cout << "Discard top: " << discard.back().getName() << " with effect type: "
-        << (int)discard.back().getEffect().type << ", value: " << discard.back().getEffect().value << std::endl;
-
-    if (enemy.hp <= 0) {
-        battleWon = true;
-        std::cout << "Battle won!" << std::endl;
-    }
+    discard.push_back(std::move(card));
+    if (enemy.hp <= 0) battleWon = true;
 }
 
 void BattleScene::playCardFromHand(Card& card, std::vector<Card>::iterator& it) {
@@ -319,7 +304,7 @@ void BattleScene::updateArmorText() {
 
 void BattleScene::endTurn() {
     enemyAttack();
-    updateEnemyEffects(); // Update weaken effect each turn
+    updateEnemyEffects();
     drawCard();
     resetTurn();
 }
@@ -336,13 +321,29 @@ void BattleScene::applyWeakenEffect(int reduction, int turns) {
     std::cout << enemy.name << " weakened: damage reduced by " << reduction << " for " << turns << " turns\n";
 }
 
+void BattleScene::applyPoisonEffect(int damage, int turns) {
+    enemy.poisonDamage = damage;
+    enemy.poisonTurns = turns;
+    std::cout << enemy.name << " poisoned: " << damage << " dmg/turn for " << turns << " turns\n";
+}
+
+void BattleScene::applyThornsEffect() {
+    enemy.hp -= playerArmor;
+    std::cout << "Thorns dealt " << playerArmor << " damage, " << enemy.name << " HP now: " << enemy.hp << "\n";
+    updateHPText();
+}
+
 void BattleScene::updateEnemyEffects() {
     if (enemy.weakenTurns > 0) {
         enemy.weakenTurns--;
-        std::cout << enemy.name << " weaken turns remaining: " << enemy.weakenTurns << "\n";
-        if (enemy.weakenTurns == 0) {
-            enemy.damageReduction = 0;
-            std::cout << enemy.name << " weaken effect expired, damage restored\n";
-        }
+        if (enemy.weakenTurns == 0) enemy.damageReduction = 0;
+    }
+    if (enemy.poisonTurns > 0) {
+        enemy.hp -= enemy.poisonDamage;
+        enemy.poisonTurns--;
+        std::cout << enemy.name << " takes " << enemy.poisonDamage << " poison damage, HP now: " << enemy.hp
+            << ", poison turns left: " << enemy.poisonTurns << "\n";
+        updateHPText();
+        if (enemy.hp <= 0) battleWon = true;
     }
 }

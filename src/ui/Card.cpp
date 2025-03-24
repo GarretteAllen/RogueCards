@@ -119,6 +119,12 @@ void Card::updateTextTexture() {
     case CardEffectType::Weaken:
         effectStr = " Weaken:" + std::to_string(effect.value) + " (" + std::to_string(effect.count) + "t)";
         break;
+    case CardEffectType::Poison:
+        effectStr = " Poison:" + std::to_string(effect.value) + " (" + std::to_string(effect.count) + "t";
+        break;
+    case CardEffectType::Thorns:
+        effectStr = " Thorns";
+        break;
     default:
         break;
     }

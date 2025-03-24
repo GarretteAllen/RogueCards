@@ -6,7 +6,7 @@ MenuScene::MenuScene(SDL_Renderer* renderer, TTF_Font* font, Game* game)
     : renderer(renderer), font(font), game(game) {
     buttons.push_back(Button(300, 200, 200, 50, "Play", font, renderer, [this, game]() {
         std::cout << "Play button clicked\n";
-        game->setGameState(GameState::PLAYING);
+        game->setGameState(GameState::DECK_SELECTION);
         }));
     buttons.push_back(Button(300, 300, 200, 50, "Options", font, renderer, []() {
         std::cout << "Options button clicked\n";

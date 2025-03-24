@@ -24,6 +24,7 @@ set(SOURCES
     src/scenes/BattleScene.cpp src/scenes/BattleScene.h
     src/ui/Card.cpp src/ui/Card.h
     src/ui/CardEffect.h
+    src/scenes/DeckSelectionScene.cpp src/scenes/DeckSelectionScene.h
 )
 
 # Define the executable
