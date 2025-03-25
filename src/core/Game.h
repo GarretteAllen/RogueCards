@@ -3,46 +3,46 @@
 
 #include <SDL.h>
 #include <SDL_ttf.h>
-#include "../systems/InputManager.h"
-#include "entities/Enemy.h"
-#include "../scenes/MenuScene.h"
-#include "../scenes/BattleScene.h"
-#include "../scenes/GameScene.h"
-#include "../scenes/DeckSelectionScene.h"
-#include "../ui/Card.h"
+#include <SDL_image.h>
 #include <memory>
-
-enum class GameState { MENU, DECK_SELECTION, PLAYING, BATTLE };
+#include "../scenes/Scene.h"
+#include "../ui/Card.h"
+#include "../entities/Enemy.h"
+#include <vector>
+#include <string>
 
 class Game {
 public:
+    enum class GameState { MENU, DECK_SELECTION, GAME, BATTLE };
+    enum class DeckType { DAMAGE, BALANCED, ELEMENTAL, DEFENSE };
+
     Game();
     ~Game();
     bool init(const char* title, int width, int height);
-    void run();
+    void handleEvents();
+    void render();
     void clean();
-    void setGameState(GameState newState);
-    SDL_Renderer* getRenderer() const { return renderer; }
-    TTF_Font* getFont() const { return font; }
-    void startBattle(const Enemy& enemy); 
+    void cleanup(); 
+    bool running() const { return isRunning; }
+
+    void setState(GameState newState);
+    void selectDeck(DeckType deck);
+    void startBattle(const std::string& enemyName, int enemyHP, int enemyDamage);
     void endBattle(bool won);
-    void setSelectedDeck(int deckId);
     const std::vector<Card>& getSelectedDeck() const { return selectedDeck; }
-    size_t currentNodeIndex;
+
+    int currentNodeIndex;
 
 private:
     bool isRunning;
+    bool isCleaned;
     SDL_Window* window;
     SDL_Renderer* renderer;
     TTF_Font* font;
-    InputManager inputManager;
     GameState currentState;
     std::unique_ptr<Scene> currentScene;
+    DeckType selectedDeckType;
     std::vector<Card> selectedDeck;
-
-    void handleEvents();
-    void update();
-    void render();
 };
 
 #endif

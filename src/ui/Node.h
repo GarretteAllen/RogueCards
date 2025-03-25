@@ -8,22 +8,18 @@
 
 class Node {
 public:
-    Node(int x, int y, int size, const std::string& label, float opacity,
-        SDL_Renderer* renderer, TTF_Font* font, std::function<void()> onClick);
-    ~Node();
-    void render(SDL_Renderer* renderer);
-    void handleEvent(SDL_Event* event);
+    Node(int x, int y, int size, const std::string& label, float opacity, SDL_Renderer* renderer, TTF_Font* font, std::function<void()> onClick);
+    void render() const;
+    void handleEvent(SDL_Event& e);
 
-    std::string label;
-    float opacity;
-    bool isHovered;
-    bool isCompleted;
+    std::string label; 
+    float opacity; 
+    bool isCompleted; 
 
 private:
     SDL_Rect rect;
-    SDL_Renderer* renderer;
-    TTF_Font* font;
     SDL_Texture* texture;
+    SDL_Renderer* renderer;
     std::function<void()> onClick;
 };
 

@@ -3,24 +3,21 @@
 
 #include "Scene.h"
 #include "../ui/Button.h"
-#include <SDL.h>
-#include <SDL_ttf.h>
 #include <vector>
 
 class Game;
 
 class DeckSelectionScene : public Scene {
 public:
-	DeckSelectionScene(SDL_Renderer* renderer, TTF_Font* font, Game* game);
-	void update() override;
-	void render(SDL_Renderer* renderer) override;
-	void handleInput(SDL_Event* event) override;
+    DeckSelectionScene(SDL_Renderer* renderer, TTF_Font* font, Game* game);
+    void render() override;
+    void handleEvent(SDL_Event& e) override;
 
 private:
-	SDL_Renderer* renderer;
-	TTF_Font* font;
-	Game* game;
-	std::vector<Button> buttons;
+    SDL_Renderer* renderer;
+    TTF_Font* font;
+    Game* game;
+    std::vector<Button> buttons;
 };
 
 #endif

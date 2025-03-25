@@ -1,4 +1,6 @@
 #include "GameScene.h"
+#include "../core/Game.h"
+#include "../entities/Enemy.h"
 #include <iostream>
 
 GameScene::GameScene(SDL_Renderer* renderer, TTF_Font* font, Game* game)
@@ -8,67 +10,73 @@ GameScene::GameScene(SDL_Renderer* renderer, TTF_Font* font, Game* game)
 
 void GameScene::initializeNodes() {
     nodes.clear();
-    nodes.push_back(Node(350, 250, 50, "Goblin", (currentNodeIndex == 0 ? 1.0f : (currentNodeIndex > 0 ? 0.3f : 0.5f)), renderer, font, [this]() {
+    // Goblin (index 0)
+    nodes.push_back(Node(350, 250, 50, "Goblin", (currentNodeIndex == 0 ? 1.0f : 0.5f), renderer, font, [this]() {
         std::cout << "Starting Goblin Battle\n";
         Enemy goblin("Goblin", 10, 3);
-        game->setGameState(GameState::BATTLE);
-        game->startBattle(goblin);
+        this->game->setState(Game::GameState::BATTLE);
+        this->game->startBattle(goblin.name, goblin.hp, goblin.damage);
         }));
-    nodes.push_back(Node(450, 250, 50, "Ogre", (currentNodeIndex == 1 ? 1.0f : (currentNodeIndex > 1 ? 0.3f : 0.5f)), renderer, font, [this]() {
+    // Ogre (index 1)
+    nodes.push_back(Node(450, 250, 50, "Ogre", (currentNodeIndex == 1 ? 1.0f : 0.5f), renderer, font, [this]() {
         std::cout << "Starting Ogre Battle\n";
         Enemy ogre("Ogre", 20, 5);
-        game->setGameState(GameState::BATTLE);
-        game->startBattle(ogre);
+        this->game->setState(Game::GameState::BATTLE);
+        this->game->startBattle(ogre.name, ogre.hp, ogre.damage);
         }));
-    nodes.push_back(Node(550, 250, 50, "Troll", (currentNodeIndex == 2 ? 1.0f : (currentNodeIndex > 2 ? 0.3f : 0.5f)), renderer, font, [this]() {
+    // Troll (index 2)
+    nodes.push_back(Node(550, 250, 50, "Troll", (currentNodeIndex == 2 ? 1.0f : 0.5f), renderer, font, [this]() {
         std::cout << "Starting Troll Battle\n";
         Enemy troll("Troll", 30, 4);
-        game->setGameState(GameState::BATTLE);
-        game->startBattle(troll);
+        this->game->setState(Game::GameState::BATTLE);
+        this->game->startBattle(troll.name, troll.hp, troll.damage);
         }));
-    // Set completed state for nodes before currentNodeIndex
-    for (size_t i = 0; i < currentNodeIndex && i < nodes.size(); ++i) {
-        nodes[i].isCompleted = true;
+
+    
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        if (static_cast<int>(i) < currentNodeIndex) {
+            nodes[i].isCompleted = true;
+            nodes[i].opacity = 0.5f; 
+        }
+        else if (static_cast<int>(i) == currentNodeIndex) {
+            nodes[i].isCompleted = false;
+            nodes[i].opacity = 1.0f; 
+        }
+        else {
+            nodes[i].isCompleted = false;
+            nodes[i].opacity = 0.5f; 
+        }
     }
 }
 
 void GameScene::unlockNextNode() {
-    // Removed increment here; handled by Game::endBattle
-    if (currentNodeIndex < nodes.size()) {
-        nodes[currentNodeIndex].isCompleted = true; // Mark current as completed
-        nodes[currentNodeIndex].opacity = 0.3f; // Dim completed node
+    if (currentNodeIndex < static_cast<int>(nodes.size())) {
+        nodes[currentNodeIndex].isCompleted = true;
+        nodes[currentNodeIndex].opacity = 0.5f; 
         std::cout << "Completed " << nodes[currentNodeIndex].label << "\n";
+        currentNodeIndex++;
+        game->currentNodeIndex = currentNodeIndex;
     }
-    if (currentNodeIndex + 1 < nodes.size()) {
-        nodes[currentNodeIndex + 1].opacity = 1.0f; // Unlock next node
-        std::cout << "Unlocked " << nodes[currentNodeIndex + 1].label << "\n";
+    if (currentNodeIndex < static_cast<int>(nodes.size())) {
+        nodes[currentNodeIndex].opacity = 1.0f; 
+        nodes[currentNodeIndex].isCompleted = false;
+        std::cout << "Unlocked " << nodes[currentNodeIndex].label << "\n";
     }
 }
 
-void GameScene::update() {
-    // Update game objects if needed
-}
-
-void GameScene::render(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // Blue background
+void GameScene::render() {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    for (auto& node : nodes) {
-        node.render(renderer);
+    for (const auto& node : nodes) {
+        node.render();
     }
+
+    SDL_RenderPresent(renderer);
 }
 
-void GameScene::handleInput(SDL_Event* event) {
-    if (event->type == SDL_MOUSEMOTION) {
-        for (auto& node : nodes) {
-            node.isHovered = false;
-        }
-    }
-
+void GameScene::handleEvent(SDL_Event& e) {
     for (auto& node : nodes) {
-        node.handleEvent(event);
-    }
-    if (event->type == SDL_KEYDOWN) {
-        std::cout << "Key pressed in game scene" << std::endl;
+        node.handleEvent(e);
     }
 }

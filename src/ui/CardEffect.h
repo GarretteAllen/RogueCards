@@ -11,6 +11,9 @@ enum class CardEffectType {
 	Weaken,
 	Poison,
 	Thorns,
+	Wet,
+	Lightning,
+	Ice
 };
 
 struct CardEffect {

@@ -1,25 +1,20 @@
-#ifndef BATTLESCENE_H
-#define BATTLESCENE_H
+#ifndef BATTLE_SCENE_H
+#define BATTLE_SCENE_H
 
-#include "../entities/Enemy.h"
 #include "Scene.h"
-#include "../ui/Button.h"
 #include "../ui/Card.h"
-#include <SDL.h>
-#include <SDL_ttf.h>
-#include <string>
+#include "../ui/Button.h"
+#include "../entities/Enemy.h"
 #include <vector>
+#include <functional>
 
 class Game;
 
 class BattleScene : public Scene {
 public:
     BattleScene(SDL_Renderer* renderer, TTF_Font* font, const Enemy& enemy, Game* game);
-    ~BattleScene();
-    void update() override;
-    void render(SDL_Renderer* renderer) override;
-    void handleInput(SDL_Event* event) override;
-    void playCardFromHand(Card& card, std::vector<Card>::iterator& it); 
+    void render() override;
+    void handleEvent(SDL_Event& e) override;
 
 private:
     SDL_Renderer* renderer;
@@ -27,41 +22,38 @@ private:
     Game* game;
     Enemy enemy;
     SDL_Texture* enemyHPText;
-    SDL_Rect enemyHPRect;
-    bool battleWon;
-    Button continueButton;
-    std::vector<Card> hand;
-    std::vector<Card> discard;
-    std::vector<Card> drawPile;
-    SDL_Rect boardRect;
-    //player stats / rects
     int playerHP;
     SDL_Texture* playerHPText;
-	SDL_Rect playerHPRect;
-    int playerEnergy;        
-    int maxEnergy;           
-    SDL_Texture* energyText; 
-    SDL_Rect energyRect;  
-    Button skipTurnButton;
-    bool playerDefeated = false;
-    int playerArmor;         
+    int playerArmor;
     SDL_Texture* armorText;
-    SDL_Rect armorRect;
+    bool battleWon;
+    bool playerDefeated;
+    Button continueButton;
+    SDL_Rect boardRect;
+    std::vector<Card> hand;
+    std::vector<Card> drawPile;
+    std::vector<Card> discard;
+    int playerEnergy;
+    int maxEnergy;
+    SDL_Texture* energyText;
+    Button skipTurnButton;
 
-    void updateHPText();    
-    void updateArmorText();
+    void updateHPText();
     void updatePlayerHPText();
-    void updateEnergyText(); 
-    void initializeCards();  
-    void playCard(Card& card); 
+    void updateArmorText();
+    void updateEnergyText();
     void drawCard();
-    void enemyAttack();
-    void endTurn();
-    void resetTurn();     
-    void applyWeakenEffect(int reduction, int turns);
-    void updateEnemyEffects();
+    void playCard(Card& card);
+    void applyWeakenEffect(int value, int turns);
     void applyPoisonEffect(int damage, int turns);
     void applyThornsEffect();
+    void applyWetEffect(int turns);
+    void applyLightningEffect(int damage);
+    void applyIceEffect(int damage, int freezeTurns);
+    void updateEnemyEffects();
+    void enemyAttack();
+    void endTurn();
+    void resetTurn();
 };
 
 #endif

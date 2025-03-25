@@ -12,15 +12,14 @@ class Game;
 class MenuScene : public Scene {
 public:
     MenuScene(SDL_Renderer* renderer, TTF_Font* font, Game* game);
-    void update() override;
-    void render(SDL_Renderer* renderer) override;
-    void handleInput(SDL_Event* event) override;
+    void render() override;
+    void handleEvent(SDL_Event& e) override;
 
 private:
     SDL_Renderer* renderer;
     TTF_Font* font;
     Game* game;
-    std::vector<Button> buttons; 
+    std::vector<Button> buttons;
 };
 
 #endif

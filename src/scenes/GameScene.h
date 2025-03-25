@@ -1,25 +1,25 @@
-#ifndef GAMESCENE_H
-#define GAMESCENE_H
+#ifndef GAME_SCENE_H
+#define GAME_SCENE_H
 
 #include "Scene.h"
 #include "../ui/Node.h"
-#include "../core/Game.h"
 #include <vector>
+
+class Game;
 
 class GameScene : public Scene {
 public:
     GameScene(SDL_Renderer* renderer, TTF_Font* font, Game* game);
-    void update() override;
-    void render(SDL_Renderer* renderer) override;
-    void handleInput(SDL_Event* event) override;
-    void unlockNextNode();
+    void render() override;
+    void handleEvent(SDL_Event& e) override;
+    void unlockNextNode(); 
 
 private:
-    std::vector<Node> nodes;
     SDL_Renderer* renderer;
     TTF_Font* font;
     Game* game;
-    int currentNodeIndex;
+    std::vector<Node> nodes;
+    int currentNodeIndex; 
 
     void initializeNodes();
 };
