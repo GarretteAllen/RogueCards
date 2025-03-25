@@ -1,4 +1,5 @@
 #include "RewardScene.h"
+#include "../common/Constants.h"
 #include "../core/Game.h"
 #include "../scenes/GameScene.h"
 #include <random>
@@ -27,19 +28,19 @@ void RewardScene::initializeRewardCards() {
 
         if (rewardType == RewardType::Green) {
             // Green Reward: 50% chance for Rare, 50% chance for Common, no Epic
-            if (roll < 0.5f) {
+            if (roll < Constants::RARITY_PROBABILITY_THRESHOLD) {
                 rarity = Game::CardRarity::Rare;
             }
         }
         else if (rewardType == RewardType::Purple) {
             // Purple Reward: 50% chance for Epic, 50% chance for Rare or Common
-            if (roll < 0.5f) {
+            if (roll < Constants::RARITY_PROBABILITY_THRESHOLD) {
                 rarity = Game::CardRarity::Epic;
             }
             else {
                 // If not Epic, 50% chance for Rare, 50% chance for Common
                 roll = dist(gen);
-                if (roll < 0.5f) {
+                if (roll < Constants::RARITY_PROBABILITY_THRESHOLD) {
                     rarity = Game::CardRarity::Rare;
                 }
             }
@@ -83,11 +84,11 @@ void RewardScene::initializeRewardCards() {
 
             if (!filteredCards.empty()) {
                 Card card = filteredCards[0]; // Pick the first card
-                card.setPosition(200 + i * 150, 200); // Position cards side by side
+                card.setPosition(Constants::REWARD_CARD_BASE_X + i * Constants::REWARD_CARD_SPACING, Constants::REWARD_CARD_Y);
                 rewardCards.push_back(card);
 
                 // Set up clickable area for the card
-                SDL_Rect cardRect = { 200 + i * 150, 200, 100, 150 };
+                SDL_Rect cardRect = { Constants::REWARD_CARD_BASE_X + i * Constants::REWARD_CARD_SPACING, Constants::REWARD_CARD_Y, Constants::CARD_WIDTH, Constants::CARD_HEIGHT };
                 cardRects.push_back(cardRect);
             }
         }
@@ -124,7 +125,7 @@ void RewardScene::render() {
         Card& card = rewardCards[i]; // Remove const to allow calling non-const render
         // Pass default values for playerEnergy, windowWidth, and windowHeight
         // playerEnergy is set high so cards are not dimmed
-        card.render(renderer, 999, game->getWindowWidth(), game->getWindowHeight());
+        card.render(renderer, 999, Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT);
 
         // Draw a border around the card
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);

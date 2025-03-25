@@ -5,6 +5,7 @@
 #include "../ui/Card.h"
 #include "../ui/Button.h"
 #include "../entities/Enemy.h"
+#include "../systems/TextureManager.h"
 #include <vector>
 #include <functional>
 
@@ -41,6 +42,7 @@ private:
     int maxEnergy;
     SDL_Texture* energyText;
     Button skipTurnButton;
+    TextureManager textureManager;
 
     void updateHPText();
     void updatePlayerHPText();

@@ -29,6 +29,8 @@ set(SOURCES
     src/ui/CardEffect.h
     src/scenes/DeckSelectionScene.cpp src/scenes/DeckSelectionScene.h
     src/scenes/RewardScene.cpp src/scenes/RewardScene.h
+    src/systems/TextureManager.h
+    src/common/Constants.h
 )
 
 # Define the executable

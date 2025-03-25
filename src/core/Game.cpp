@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "../common/Constants.h"
 #include "../scenes/MenuScene.h"
 #include "../scenes/DeckSelectionScene.h"
 #include "../scenes/GameScene.h"
@@ -42,7 +43,7 @@ bool Game::init(const char* title, int width, int height) {
         return false;
     }
 
-    font = TTF_OpenFont("assets/Arial.TTF", 24);
+    font = TTF_OpenFont(Constants::FONT_PATH.c_str(), Constants::FONT_SIZE);
     if (!font) {
         std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
         return false;
@@ -116,10 +117,6 @@ void Game::clean() {
     SDL_Quit();
 
     isCleaned = true;
-}
-
-void Game::cleanup() {
-    clean();
 }
 
 void Game::setState(GameState newState) {
@@ -282,13 +279,11 @@ void Game::initializeCards() {
 
     for (auto& card : allCards) {
         std::string lowercaseName = card.getName();
-        // Convert name to lowercase
         for (char& c : lowercaseName) {
             c = std::tolower(c);
         }
-        // Remove spaces for file name
         std::replace(lowercaseName.begin(), lowercaseName.end(), ' ', '_');
-        std::string imagePath = "assets/cards/" + lowercaseName + "_card.png";
-        card.loadImage(imagePath, renderer);
+        std::string imagePath = Constants::CARD_PATH + lowercaseName + Constants::CARD_SUFFIX;
+        card.loadImage(imagePath, renderer, textureManager);
     }
 }

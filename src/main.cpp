@@ -1,9 +1,10 @@
 #include "core/Game.h"
+#include "common/Constants.h"
 #include <SDL.h>
 
 int main(int argc, char* argv[]) {
     Game game;
-    if (!game.init("Roguelike Deckbuilder", 800, 600)) {
+    if (!game.init("Rogue Cards", Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT)) {
         return 1;
     }
 

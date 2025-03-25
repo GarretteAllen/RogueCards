@@ -1,77 +1,11 @@
 #include "Card.h"
+#include "../common/Constants.h"
 #include <SDL_image.h>
 #include <iostream>
-#include <algorithm>
 
 Card::Card(int x, int y, const std::string& name, int damage, int energyCost, SDL_Renderer* renderer, TTF_Font* font, CardEffect effect)
-    : rect{ x, y, 100, 150 }, originalRect{ x, y, 100, 150 }, name(name), damage(damage), energyCost(energyCost),
-    effect(effect), textTexture(nullptr), imageTexture(nullptr), isDragging(false), isHovered(false), isMagnified(false), renderer(renderer) {
-}
-
-Card::Card(const Card& other)
-    : rect(other.rect), originalRect(other.originalRect), name(other.name), damage(other.damage), energyCost(other.energyCost),
-    effect(other.effect), textTexture(nullptr), imageTexture(nullptr), isDragging(other.isDragging), isHovered(other.isHovered),
-    isMagnified(other.isMagnified), renderer(other.renderer) {
-    // Reload the image texture for the copied card using the correct convention
-    if (other.imageTexture) {
-        std::string lowercaseName = name;
-        // Convert name to lowercase
-        for (char& c : lowercaseName) {
-            c = std::tolower(c);
-        }
-        // Remove spaces for file name
-        std::replace(lowercaseName.begin(), lowercaseName.end(), ' ', '_');
-        std::string imagePath = "assets/cards/" + lowercaseName + "_card.png";
-        loadImage(imagePath, renderer);
-    }
-}
-
-Card& Card::operator=(const Card& other) {
-    if (this != &other) {
-        // Destroy existing textures
-        if (textTexture) {
-            SDL_DestroyTexture(textTexture);
-        }
-        if (imageTexture) {
-            SDL_DestroyTexture(imageTexture);
-        }
-
-        rect = other.rect;
-        originalRect = other.originalRect;
-        name = other.name;
-        damage = other.damage;
-        energyCost = other.energyCost;
-        effect = other.effect;
-        isDragging = other.isDragging;
-        isHovered = other.isHovered;
-        isMagnified = other.isMagnified;
-        renderer = other.renderer;
-        textTexture = nullptr;
-        imageTexture = nullptr;
-
-        // Reload the image texture for the copied card using the correct convention
-        if (other.imageTexture) {
-            std::string lowercaseName = name;
-            // Convert name to lowercase
-            for (char& c : lowercaseName) {
-                c = std::tolower(c);
-            }
-            // Remove spaces for file name
-            std::replace(lowercaseName.begin(), lowercaseName.end(), ' ', '_');
-            std::string imagePath = "assets/cards/" + lowercaseName + "_card.png";
-            loadImage(imagePath, renderer);
-        }
-    }
-    return *this;
-}
-
-Card::~Card() {
-    if (textTexture) {
-        SDL_DestroyTexture(textTexture);
-    }
-    if (imageTexture) {
-        SDL_DestroyTexture(imageTexture);
-    }
+    : rect{ x, y, Constants::CARD_WIDTH, Constants::CARD_HEIGHT }, originalRect{ x, y, Constants::CARD_WIDTH, Constants::CARD_HEIGHT }, name(name), damage(damage), energyCost(energyCost),
+    effect(effect), textTexture(nullptr), imageTexture(nullptr), isDragging(false), isHovered(false), isMagnified(false), hoverStartTime() {
 }
 
 void Card::render(SDL_Renderer* renderer, int playerEnergy, int windowWidth, int windowHeight) {
@@ -98,21 +32,21 @@ void Card::render(SDL_Renderer* renderer, int playerEnergy, int windowWidth, int
     }
 
     if (playerEnergy < energyCost && !isDragging) {
-        SDL_SetTextureAlphaMod(imageTexture, 128);
+        SDL_SetTextureAlphaMod(imageTexture.get(), 128);
     }
     else {
-        SDL_SetTextureAlphaMod(imageTexture, 255);
+        SDL_SetTextureAlphaMod(imageTexture.get(), 255);
     }
 
     if (imageTexture) {
-        SDL_RenderCopy(renderer, imageTexture, nullptr, &renderRect);
+        SDL_RenderCopy(renderer, imageTexture.get(), nullptr, &renderRect);
     }
     else {
-        SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+        SDL_SetRenderDrawColor(renderer, Constants::COLOR_GRAY.r, Constants::COLOR_GRAY.g, Constants::COLOR_GRAY.b, Constants::COLOR_GRAY.a);
         SDL_RenderFillRect(renderer, &renderRect);
     }
 
-    SDL_SetTextureAlphaMod(imageTexture, 255);
+    SDL_SetTextureAlphaMod(imageTexture.get(), 255);
 }
 
 void Card::handleEvent(SDL_Event& e) {
@@ -148,27 +82,8 @@ void Card::handleEvent(SDL_Event& e) {
     }
 }
 
-void Card::loadImage(const std::string& path, SDL_Renderer* renderer) {
-    if (imageTexture) {
-        SDL_DestroyTexture(imageTexture);
-        imageTexture = nullptr;
-    }
-
-    SDL_Surface* surface = IMG_Load(path.c_str());
-    if (!surface) {
-        std::cerr << "Failed to load image for card: " << name << " from " << path << " - IMG_Error: " << IMG_GetError() << std::endl;
-        return;
-    }
-
-    imageTexture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-
-    if (imageTexture) {
-        std::cout << "Loaded image for card: " << name << " from " << path << std::endl;
-    }
-    else {
-        std::cerr << "Failed to create texture for card: " << name << " from " << path << " - SDL_Error: " << SDL_GetError() << std::endl;
-    }
+void Card::loadImage(const std::string& path, SDL_Renderer* renderer, TextureManager& textureManager) {
+    imageTexture = textureManager.loadTexture(path, renderer);
 }
 
 void Card::resetPosition() {

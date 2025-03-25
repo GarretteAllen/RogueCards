@@ -1,4 +1,5 @@
 #include "BattleScene.h"
+#include "../common/Constants.h"
 #include "../core/Game.h"
 #include <iostream>
 #include <algorithm>
@@ -17,10 +18,10 @@ BattleScene::BattleScene(SDL_Renderer* renderer, TTF_Font* font, const Enemy& e,
     std::cout << "Selected deck size: " << selectedDeck.size() << "\n";
     for (const Card& card : selectedDeck) {
         Card newCard(0, 0, card.getName(), card.getDamage(), card.getEnergyCost(), renderer, font, card.getEffect());
-        std::string imagePath = "assets/cards/" + card.getName() + "_card.png";
+        std::string imagePath = Constants::CARD_PATH + card.getName() + Constants::CARD_SUFFIX;
         std::replace(imagePath.begin(), imagePath.end(), ' ', '_');
         std::transform(imagePath.begin(), imagePath.end(), imagePath.begin(), ::tolower);
-        newCard.loadImage(imagePath, renderer);
+        newCard.loadImage(imagePath, renderer, textureManager);
         drawPile.push_back(std::move(newCard));
     }
     std::cout << "drawPile size after population: " << drawPile.size() << "\n";

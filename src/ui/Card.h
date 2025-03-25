@@ -5,6 +5,8 @@
 #include <SDL_ttf.h>
 #include <string>
 #include <iostream>
+#include <memory>
+#include "../systems/TextureManager.h"
 
 enum class CardEffectType { None, Armor, Heal, MultiStrike, Weaken, Poison, Thorns, Wet, Lightning, Ice };
 
@@ -21,17 +23,17 @@ public:
     Card(int x, int y, const std::string& name, int damage, int energyCost, SDL_Renderer* renderer, TTF_Font* font, CardEffect effect = CardEffect());
 
     // Copy constructor
-    Card(const Card& other);
+    Card(const Card& other) = default;
 
     // Copy assignment operator
-    Card& operator=(const Card& other);
+    Card& operator=(const Card& other) = default;
 
     // Destructor
-    ~Card();
+    ~Card() = default;
 
     void render(SDL_Renderer* renderer, int playerEnergy, int windowWidth, int windowHeight);
     void handleEvent(SDL_Event& e);
-    void loadImage(const std::string& path, SDL_Renderer* renderer);
+    void loadImage(const std::string& path, SDL_Renderer* renderer, TextureManager& textureManager);
     void resetPosition();
 
     void setPosition(int x, int y) {
@@ -61,14 +63,12 @@ private:
     int damage;
     int energyCost;
     CardEffect effect;
-    SDL_Texture* textTexture;
-    SDL_Texture* imageTexture;
+    std::shared_ptr<SDL_Texture> textTexture;
+    std::shared_ptr<SDL_Texture> imageTexture;
     bool isHovered;
     Uint32 hoverStartTime;
     static const Uint32 HOVER_DELAY = 2000;
     bool isMagnified;
-
-    SDL_Renderer* renderer; // Store renderer to reload texture on copy
 };
 
 #endif

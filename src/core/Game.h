@@ -5,11 +5,12 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <memory>
+#include <vector>
+#include <string>
 #include "../scenes/Scene.h"
 #include "../ui/Card.h"
 #include "../entities/Enemy.h"
-#include <vector>
-#include <string>
+#include "../systems/TextureManager.h"
 
 class GameScene; // Forward declaration
 
@@ -25,7 +26,6 @@ public:
     void handleEvents();
     void render();
     void clean();
-    void cleanup();
     bool running() const { return isRunning; }
 
     void setState(GameState newState);
@@ -70,6 +70,8 @@ private:
     std::unique_ptr<Scene> deckSelectionScene;
     std::unique_ptr<Scene> battleScene;
     std::unique_ptr<Scene> rewardScene;
+
+    TextureManager textureManager;
 };
 
 #endif
