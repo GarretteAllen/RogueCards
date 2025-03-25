@@ -19,10 +19,27 @@ struct CardEffect {
 class Card {
 public:
     Card(int x, int y, const std::string& name, int damage, int energyCost, SDL_Renderer* renderer, TTF_Font* font, CardEffect effect = CardEffect());
-    void render(SDL_Renderer* renderer);
+
+    // Copy constructor
+    Card(const Card& other);
+
+    // Copy assignment operator
+    Card& operator=(const Card& other);
+
+    // Destructor
+    ~Card();
+
+    void render(SDL_Renderer* renderer, int playerEnergy, int windowWidth, int windowHeight);
     void handleEvent(SDL_Event& e);
     void loadImage(const std::string& path, SDL_Renderer* renderer);
     void resetPosition();
+
+    void setPosition(int x, int y) {
+        rect.x = x;
+        rect.y = y;
+        originalRect.x = x;
+        originalRect.y = y;
+    }
 
     SDL_Rect& getRect() { return rect; }
     SDL_Rect& getOriginalRect() {
@@ -35,6 +52,7 @@ public:
     CardEffect getEffect() const { return effect; }
 
     bool isDragging;
+    bool getIsMagnified() const { return isMagnified; }
 
 private:
     SDL_Rect rect;
@@ -45,6 +63,12 @@ private:
     CardEffect effect;
     SDL_Texture* textTexture;
     SDL_Texture* imageTexture;
+    bool isHovered;
+    Uint32 hoverStartTime;
+    static const Uint32 HOVER_DELAY = 2000;
+    bool isMagnified;
+
+    SDL_Renderer* renderer; // Store renderer to reload texture on copy
 };
 
 #endif

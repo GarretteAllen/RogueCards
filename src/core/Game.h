@@ -11,10 +11,13 @@
 #include <vector>
 #include <string>
 
+class GameScene; // Forward declaration
+
 class Game {
 public:
-    enum class GameState { MENU, DECK_SELECTION, GAME, BATTLE };
+    enum class GameState { MENU, DECK_SELECTION, GAME, BATTLE, REWARD };
     enum class DeckType { DAMAGE, BALANCED, ELEMENTAL, DEFENSE };
+    enum class CardRarity { Common, Rare, Epic };
 
     Game();
     ~Game();
@@ -22,7 +25,7 @@ public:
     void handleEvents();
     void render();
     void clean();
-    void cleanup(); 
+    void cleanup();
     bool running() const { return isRunning; }
 
     void setState(GameState newState);
@@ -32,17 +35,41 @@ public:
     const std::vector<Card>& getSelectedDeck() const { return selectedDeck; }
 
     int currentNodeIndex;
+    std::vector<bool> completedNodes;
+    std::unique_ptr<GameScene> gameScene;
+
+    int getWindowWidth() const { return WINDOW_WIDTH; }
+    int getWindowHeight() const { return WINDOW_HEIGHT; }
+    void addCardToDeck(const Card& card);
+    std::vector<Card> getRewardCards(CardRarity maxRarity, int count = 1);
+
+    void handleBattleCompletion(bool won);
+
+    SDL_Renderer* renderer;
+    TTF_Font* font;
+    Scene* currentScene;
+    GameState currentState;
+
+    void setRewardScene(std::unique_ptr<Scene> newRewardScene) { rewardScene = std::move(newRewardScene); }
 
 private:
     bool isRunning;
     bool isCleaned;
     SDL_Window* window;
-    SDL_Renderer* renderer;
-    TTF_Font* font;
-    GameState currentState;
-    std::unique_ptr<Scene> currentScene;
     DeckType selectedDeckType;
     std::vector<Card> selectedDeck;
+
+    static const int WINDOW_WIDTH = 800;
+    static const int WINDOW_HEIGHT = 600;
+
+    std::vector<Card> allCards;
+    void initializeCards();
+
+    // Helper unique_ptrs to manage ownership of other scenes
+    std::unique_ptr<Scene> menuScene;
+    std::unique_ptr<Scene> deckSelectionScene;
+    std::unique_ptr<Scene> battleScene;
+    std::unique_ptr<Scene> rewardScene;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "../ui/Node.h"
 #include <vector>
+#include <functional>
 
 class Game;
 
@@ -12,16 +13,25 @@ public:
     GameScene(SDL_Renderer* renderer, TTF_Font* font, Game* game);
     void render() override;
     void handleEvent(SDL_Event& e) override;
-    void unlockNextNode(); 
+
+    void markNodeAsCompleted(int nodeIndex);
+    void lockSiblingNodes(int completedNodeIndex);
+    void updateProgression();
+    bool isGameOver() const { return gameOver; }
 
 private:
     SDL_Renderer* renderer;
     TTF_Font* font;
     Game* game;
     std::vector<Node> nodes;
-    int currentNodeIndex; 
+    std::vector<int> activeNodes;
+    std::vector<int> lockedNodes;
+    int currentNodeIndex;
+    bool gameOver;
 
     void initializeNodes();
+    void updateActiveNodes();
+    void unlockNextNode();
 };
 
 #endif

@@ -74,8 +74,20 @@ void BattleScene::render() {
         SDL_RenderCopy(renderer, energyText, nullptr, &textRect);
     }
 
+    Card* magnifiedCard = nullptr;
     for (auto& card : hand) {
-        card.render(renderer);
+        if (card.getIsMagnified() && !card.isDragging) {
+            magnifiedCard = &card;
+            break;
+        }
+    }
+
+    for (auto& card : hand) {
+        card.render(renderer, playerEnergy, game->getWindowWidth(), game->getWindowHeight());
+    }
+
+    if (magnifiedCard) {
+        magnifiedCard->render(renderer, playerEnergy, game->getWindowWidth(), game->getWindowHeight());
     }
 
     if (battleWon) {
@@ -88,11 +100,14 @@ void BattleScene::render() {
 }
 
 void BattleScene::handleEvent(SDL_Event& e) {
-    if (battleWon) {
+    if (battleWon && !readyToEnd) {
         continueButton.handleEvent(e);
         return;
     }
-    if (playerDefeated) return;
+    if (playerDefeated) {
+        readyToEnd = true; // Allow immediate transition if player is defeated
+        return;
+    }
 
     skipTurnButton.handleEvent(e);
 
@@ -128,6 +143,7 @@ void BattleScene::handleEvent(SDL_Event& e) {
                     updateEnergyText();
                     playCard(*it);
                     hand.erase(it);
+                    updateCardPositions();
                 }
                 else {
                     it->resetPosition();
@@ -147,6 +163,18 @@ void BattleScene::handleEvent(SDL_Event& e) {
     if (anyDragging) {
         render();
     }
+}
+
+bool BattleScene::isBattleOver() const {
+    return battleWon || playerDefeated;
+}
+
+bool BattleScene::hasPlayerWon() const {
+    return battleWon;
+}
+
+bool BattleScene::isReadyToEnd() const {
+    return readyToEnd;
 }
 
 void BattleScene::updateHPText() {
@@ -196,14 +224,18 @@ void BattleScene::drawCard() {
     if (!drawPile.empty() && hand.size() < 5) {
         hand.push_back(std::move(drawPile.back()));
         drawPile.pop_back();
-        Card& card = hand.back();
-        int newX = 50 + hand.size() * 110;
+        updateCardPositions();
+    }
+}
+
+void BattleScene::updateCardPositions() {
+    for (size_t i = 0; i < hand.size(); ++i) {
+        Card& card = hand[i];
+        int newX = 50 + (i + 1) * 110;
         SDL_Rect newRect = { newX, 450, 100, 150 };
         card.getRect() = newRect;
         card.getOriginalRect() = newRect;
-        std::cout << "Drew " << card.getName() << " at (" << card.getRect().x << ", " << card.getRect().y
-            << "), original position set to (" << card.getOriginalRect().x << ", " << card.getOriginalRect().y
-            << "), hand size: " << hand.size() << std::endl;
+        std::cout << "Positioned " << card.getName() << " at (" << newRect.x << ", " << newRect.y << ")\n";
     }
 }
 
@@ -341,7 +373,14 @@ void BattleScene::endTurn() {
         enemyAttack();
     }
     updateEnemyEffects();
-    drawCard();
+
+    const int desiredHandSize = 3;
+    const int maxHandSize = 5;
+    int cardsToDraw = (hand.size() < desiredHandSize) ? (desiredHandSize - hand.size()) : 1;
+    cardsToDraw = std::min(cardsToDraw, maxHandSize - static_cast<int>(hand.size()));
+    for (int i = 0; i < cardsToDraw; ++i) {
+        drawCard();
+    }
     resetTurn();
 }
 

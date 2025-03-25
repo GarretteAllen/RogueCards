@@ -5,22 +5,34 @@
 #include <SDL_ttf.h>
 #include <string>
 #include <functional>
+#include <vector>
+
+enum class NodeType { Fight, Reward };
 
 class Node {
 public:
-    Node(int x, int y, int size, const std::string& label, float opacity, SDL_Renderer* renderer, TTF_Font* font, std::function<void()> onClick);
+    Node(int x, int y, int size, const std::string& label, float opacity, SDL_Renderer* renderer, TTF_Font* font,
+        std::function<void()> onClick, NodeType type = NodeType::Fight, SDL_Color color = { 255, 255, 255, 255 },
+        std::vector<int> nextNodes = {});
+    ~Node();
     void render() const;
-    void handleEvent(SDL_Event& e);
+    bool handleEvent(SDL_Event& e);
 
-    std::string label; 
-    float opacity; 
-    bool isCompleted; 
+    SDL_Rect rect;
+    std::string label;
+    float opacity;
+    bool isCompleted;
+    NodeType type;
+    SDL_Color color;
+    std::vector<int> nextNodes;
 
 private:
-    SDL_Rect rect;
-    SDL_Texture* texture;
     SDL_Renderer* renderer;
+    TTF_Font* font;
     std::function<void()> onClick;
+    mutable SDL_Texture* labelTexture; 
+    mutable SDL_Rect labelRect;
+    void createLabelTexture() const; 
 };
 
 #endif
