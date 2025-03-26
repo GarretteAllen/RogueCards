@@ -1,5 +1,5 @@
-#include "OptionsScene.h"
-#include "../core/Game.h"
+#include "../includes/scenes/OptionsScene.h"
+#include "../includes/core/Game.h"
 #include <iostream>
 
 OptionsScene::OptionsScene(SDL_Renderer* renderer, TTF_Font* font, Game* game)

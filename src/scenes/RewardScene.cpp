@@ -1,7 +1,7 @@
-#include "RewardScene.h"
-#include "../common/Constants.h"
-#include "../core/Game.h"
-#include "../scenes/GameScene.h"
+#include "../includes/scenes/RewardScene.h"
+#include "../includes/common/Constants.h"
+#include "../includes/core/Game.h"
+#include "../includes/scenes/GameScene.h"
 #include <random>
 #include <iostream>
 

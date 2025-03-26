@@ -1,7 +1,7 @@
-#include "GameScene.h"
-#include "../core/Game.h"
-#include "../entities/Enemy.h"
-#include "../scenes/RewardScene.h"
+#include "../includes/scenes/GameScene.h"
+#include "../includes/core/Game.h"
+#include "../includes/entities/Enemy.h"
+#include "../includes/scenes/RewardScene.h"
 #include <iostream>
 #include <algorithm>
 

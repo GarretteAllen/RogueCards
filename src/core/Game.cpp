@@ -1,11 +1,11 @@
-#include "Game.h"
-#include "../common/Constants.h"
-#include "../scenes/MenuScene.h"
-#include "../scenes/DeckSelectionScene.h"
-#include "../scenes/GameScene.h"
-#include "../scenes/BattleScene.h"
-#include "../scenes/RewardScene.h"
-#include "../scenes/OptionsScene.h"
+#include "../includes/core/Game.h"
+#include "../includes/common/Constants.h"
+#include "../includes/scenes/MenuScene.h"
+#include "../includes/scenes/DeckSelectionScene.h"
+#include "../includes/scenes/GameScene.h"
+#include "../includes/scenes/BattleScene.h"
+#include "../includes/scenes/RewardScene.h"
+#include "../includes/scenes/OptionsScene.h"
 #include <iostream>
 #include <random>
 

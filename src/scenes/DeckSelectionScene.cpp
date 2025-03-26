@@ -1,5 +1,5 @@
-#include "DeckSelectionScene.h"
-#include "../core/Game.h"
+#include "../includes/scenes/DeckSelectionScene.h"
+#include "../includes/core/Game.h"
 #include <iostream>
 
 DeckSelectionScene::DeckSelectionScene(SDL_Renderer* renderer, TTF_Font* font, Game* game)

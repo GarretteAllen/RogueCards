@@ -1,5 +1,5 @@
-#include "MenuScene.h"
-#include "../core/Game.h"
+#include "../includes/scenes/MenuScene.h"
+#include "../includes/core/Game.h"
 #include <iostream>
 
 MenuScene::MenuScene(SDL_Renderer* renderer, TTF_Font* font, Game* game)

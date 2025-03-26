@@ -1,4 +1,4 @@
-#include "InputManager.h"
+#include "../includes/systems/InputManager.h"
 
 void InputManager::processInput(bool& isRunning) {
 	SDL_Event event;

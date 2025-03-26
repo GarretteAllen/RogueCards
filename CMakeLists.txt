@@ -17,20 +17,20 @@ include_directories(src)
 # Collect all source files
 set(SOURCES
     src/main.cpp
-    src/core/Game.cpp src/core/Game.h
-    src/systems/InputManager.cpp src/systems/InputManager.h
-    src/scenes/Scene.cpp src/scenes/Scene.h
-    src/scenes/GameScene.cpp src/scenes/GameScene.h
-    src/scenes/MenuScene.cpp src/scenes/MenuScene.h
-    src/ui/Button.cpp src/ui/Button.h
-    src/ui/Node.cpp src/ui/Node.h
-    src/scenes/BattleScene.cpp src/scenes/BattleScene.h
-    src/ui/Card.cpp src/ui/Card.h
-    src/ui/CardEffect.h
-    src/scenes/DeckSelectionScene.cpp src/scenes/DeckSelectionScene.h
-    src/scenes/RewardScene.cpp src/scenes/RewardScene.h
-    src/systems/TextureManager.h
-    src/common/Constants.h
+    src/core/Game.cpp includes/core/Game.h
+    src/systems/InputManager.cpp includes/systems/InputManager.h
+    src/scenes/Scene.cpp includes/scenes/Scene.h
+    src/scenes/GameScene.cpp includes/scenes/GameScene.h
+    src/scenes/MenuScene.cpp includes/scenes/MenuScene.h
+    src/ui/Button.cpp includes/ui/Button.h
+    src/ui/Node.cpp includes/ui/Node.h
+    src/scenes/BattleScene.cpp includes/scenes/BattleScene.h
+    src/ui/Card.cpp includes/ui/Card.h
+    includes/ui/CardEffect.h
+    src/scenes/DeckSelectionScene.cpp includes/scenes/DeckSelectionScene.h
+    src/scenes/RewardScene.cpp includes/scenes/RewardScene.h
+    includes/systems/TextureManager.h
+    includes/common/Constants.h
     src/scenes/OptionsScene.cpp
 )
 

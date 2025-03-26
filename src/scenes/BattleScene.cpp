@@ -1,6 +1,6 @@
-#include "BattleScene.h"
-#include "../common/Constants.h"
-#include "../core/Game.h"
+#include "../includes/scenes/BattleScene.h"
+#include "../includes/common/Constants.h"
+#include "../includes/core/Game.h"
 #include <iostream>
 #include <algorithm>
 #include <random>

@@ -1,5 +1,5 @@
-#include "core/Game.h"
-#include "common/Constants.h"
+#include "../includes/core/Game.h"
+#include "../includes/common/Constants.h"
 #include <SDL.h>
 
 int main(int argc, char* argv[]) {

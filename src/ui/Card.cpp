@@ -1,5 +1,5 @@
-#include "Card.h"
-#include "../common/Constants.h"
+#include "../includes/ui/Card.h"
+#include "../includes/common/Constants.h"
 #include <SDL_image.h>
 #include <iostream>
 #include <sstream>

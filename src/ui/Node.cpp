@@ -1,4 +1,4 @@
-#include "Node.h"
+#include "../includes/ui/Node.h"
 #include <iostream>
 
 Node::Node(int x, int y, int size, const std::string& label, float opacity,
