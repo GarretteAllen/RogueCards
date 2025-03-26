@@ -9,17 +9,39 @@ GameScene::GameScene(SDL_Renderer* renderer, TTF_Font* font, Game* game)
     : renderer(renderer), font(font), game(game), currentNodeIndex(game->currentNodeIndex), gameOver(false) {
     lockedNodes.clear();
     if (game->completedNodes.empty()) {
-        game->completedNodes = std::vector<bool>(6, false); // Updated for 6 nodes (added Dragon)
+        game->completedNodes = std::vector<bool>(6, false);
     }
     initializeNodes();
     updateActiveNodes();
 }
 
+void GameScene::setRenderer(SDL_Renderer* newRenderer) {
+    renderer = newRenderer;
+    for (auto& node : nodes) {
+        node.setRenderer(renderer);
+    }
+}
+
+void GameScene::setFont(TTF_Font* newFont) {
+    font = newFont;
+    if (gameOverText) {
+        SDL_DestroyTexture(gameOverText);
+        gameOverText = nullptr;
+    }
+    // Update font for nodes if they have text
+    for (auto& node : nodes) {
+        node.setFont(font);
+    }
+}
+
 void GameScene::initializeNodes() {
     nodes.clear();
 
+    int centerX = game->getWindowWidth() / 2;
+    int baseY = game->getWindowHeight() - 100;
+
     nodes.emplace_back(
-        400 - 25, 500 - 25, 50, "Goblin",
+        centerX - 25, baseY - 25, 50, "Goblin",
         0.5f,
         renderer, font,
         [this]() {
@@ -34,7 +56,7 @@ void GameScene::initializeNodes() {
     );
 
     nodes.emplace_back(
-        500 - 25, 400 - 25, 50, "Green Reward",
+        centerX + 100 - 25, baseY - 100 - 25, 50, "Green Reward",
         0.5f,
         renderer, font,
         [this]() {
@@ -50,7 +72,7 @@ void GameScene::initializeNodes() {
     );
 
     nodes.emplace_back(
-        300 - 25, 400 - 25, 50, "Troll",
+        centerX - 100 - 25, baseY - 100 - 25, 50, "Troll",
         0.5f,
         renderer, font,
         [this]() {
@@ -65,7 +87,7 @@ void GameScene::initializeNodes() {
     );
 
     nodes.emplace_back(
-        300 - 25, 300 - 25, 50, "Purple Reward",
+        centerX - 100 - 25, baseY - 200 - 25, 50, "Purple Reward",
         0.5f,
         renderer, font,
         [this]() {
@@ -80,7 +102,7 @@ void GameScene::initializeNodes() {
     );
 
     nodes.emplace_back(
-        500 - 25, 300 - 25, 50, "Ogre",
+        centerX + 100 - 25, baseY - 200 - 25, 50, "Ogre",
         0.5f,
         renderer, font,
         [this]() {
@@ -95,7 +117,7 @@ void GameScene::initializeNodes() {
     );
 
     nodes.emplace_back(
-        300 - 25, 200 - 25, 50, "Dragon",
+        centerX - 25, baseY - 300 - 25, 50, "Dragon",
         0.5f,
         renderer, font,
         [this]() {

@@ -7,11 +7,36 @@ Node::Node(int x, int y, int size, const std::string& label, float opacity,
     SDL_Color color, std::vector<int> nextNodes)
     : rect{ x, y, size, size }, label(label), opacity(opacity), isCompleted(false),
     renderer(renderer), font(font), onClick(onClick), type(type),
-    color(color), nextNodes(nextNodes), labelTexture(nullptr) {
+    color(color), nextNodes(nextNodes), labelTexture(nullptr), needsTextureUpdate(true) {
     // Defer label creation to render()
 }
 
-void Node::createLabelTexture() const {
+Node::~Node() {
+    if (labelTexture) {
+        SDL_DestroyTexture(labelTexture);
+        labelTexture = nullptr;
+    }
+}
+
+void Node::setRenderer(SDL_Renderer* newRenderer) {
+    renderer = newRenderer;
+    if (labelTexture) {
+        SDL_DestroyTexture(labelTexture);
+        labelTexture = nullptr;
+    }
+    needsTextureUpdate = true; // Defer texture creation to render()
+}
+
+void Node::setFont(TTF_Font* newFont) {
+    font = newFont;
+    if (labelTexture) {
+        SDL_DestroyTexture(labelTexture);
+        labelTexture = nullptr;
+    }
+    needsTextureUpdate = true; // Defer texture creation to render()
+}
+
+void Node::createLabelTexture() {
     if (labelTexture) {
         SDL_DestroyTexture(labelTexture);
         labelTexture = nullptr;
@@ -28,22 +53,9 @@ void Node::createLabelTexture() const {
     }
 
     SDL_Color textColor = { 0, 0, 0, 255 };
-    SDL_Surface* surface = nullptr;
-    int attempts = 0;
-    const int maxAttempts = 5;
-
-    // Retry creating the surface until it succeeds or max attempts are reached
-    while (!surface && attempts < maxAttempts) {
-        surface = TTF_RenderText_Solid(font, label.c_str(), textColor);
-        if (!surface) {
-            std::cerr << "Attempt " << (attempts + 1) << ": Failed to create surface for label '" << label << "': " << TTF_GetError() << std::endl;
-            SDL_Delay(10); // Wait 10ms before retrying
-            attempts++;
-        }
-    }
-
+    SDL_Surface* surface = TTF_RenderText_Solid(font, label.c_str(), textColor);
     if (!surface) {
-        std::cerr << "Failed to create surface for label '" << label << "' after " << maxAttempts << " attempts" << std::endl;
+        std::cerr << "Failed to create surface for label '" << label << "': " << TTF_GetError() << std::endl;
         return;
     }
 
@@ -62,6 +74,7 @@ void Node::createLabelTexture() const {
     std::cout << "Created label texture for '" << label << "' at (" << labelRect.x << ", " << labelRect.y << ")" << std::endl;
 
     SDL_FreeSurface(surface);
+    needsTextureUpdate = false;
 }
 
 bool Node::handleEvent(SDL_Event& e) {
@@ -89,8 +102,10 @@ void Node::render() const {
         SDL_RenderDrawRect(renderer, &rect);
     }
 
-    if (!labelTexture) {
-        createLabelTexture();
+    // Create label texture if needed (non-const cast to modify labelTexture)
+    Node* nonConstThis = const_cast<Node*>(this);
+    if (nonConstThis->needsTextureUpdate && nonConstThis->renderer && nonConstThis->font) {
+        nonConstThis->createLabelTexture();
     }
 
     if (labelTexture) {
@@ -108,11 +123,5 @@ void Node::render() const {
     }
     else {
         std::cerr << "No label texture for '" << label << "' during render" << std::endl;
-    }
-}
-
-Node::~Node() {
-    if (labelTexture) {
-        SDL_DestroyTexture(labelTexture);
     }
 }

@@ -18,7 +18,9 @@ public:
     void handleEvent(SDL_Event& e) override;
     bool isBattleOver() const;
     bool hasPlayerWon() const;
-    bool isReadyToEnd() const; // Added to check if the player has clicked "Continue"
+    bool isReadyToEnd() const; 
+    void setRenderer(SDL_Renderer* renderer) override;
+    void setFont(TTF_Font* font) override;
 
 private:
     SDL_Renderer* renderer;
@@ -32,7 +34,7 @@ private:
     SDL_Texture* armorText;
     bool battleWon;
     bool playerDefeated;
-    bool readyToEnd; // Added to track if "Continue" has been clicked
+    bool readyToEnd; 
     Button continueButton;
     SDL_Rect boardRect;
     std::vector<Card> hand;
@@ -43,6 +45,11 @@ private:
     SDL_Texture* energyText;
     Button skipTurnButton;
     TextureManager textureManager;
+    SDL_Rect playerTextRect;
+    SDL_Texture* playerText;
+    SDL_Rect enemyTextRect;
+    SDL_Texture* enemyText;
+
 
     void updateHPText();
     void updatePlayerHPText();
@@ -61,6 +68,7 @@ private:
     void endTurn();
     void resetTurn();
     void updateCardPositions();
+    void updateTextTextures();
 };
 
 #endif

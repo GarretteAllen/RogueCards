@@ -31,6 +31,7 @@ set(SOURCES
     src/scenes/RewardScene.cpp src/scenes/RewardScene.h
     src/systems/TextureManager.h
     src/common/Constants.h
+    src/scenes/OptionsScene.cpp
 )
 
 # Define the executable

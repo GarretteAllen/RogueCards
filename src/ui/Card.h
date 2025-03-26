@@ -43,6 +43,9 @@ public:
         originalRect.y = y;
     }
 
+    void setRenderer(SDL_Renderer* renderer);
+    void setFont(TTF_Font* font);
+
     SDL_Rect& getRect() { return rect; }
     SDL_Rect& getOriginalRect() {
         std::cout << "Modifying originalRect for card: " << name << "\n";
@@ -63,12 +66,17 @@ private:
     int damage;
     int energyCost;
     CardEffect effect;
+    SDL_Renderer* renderer;
+    TTF_Font* font;
     std::shared_ptr<SDL_Texture> textTexture;
     std::shared_ptr<SDL_Texture> imageTexture;
     bool isHovered;
     Uint32 hoverStartTime;
     static const Uint32 HOVER_DELAY = 2000;
     bool isMagnified;
+    bool needsTextTextureUpdate; // Flag to defer text texture creation
+
+    void createTextTexture(); // New method to create the text texture
 };
 
 #endif

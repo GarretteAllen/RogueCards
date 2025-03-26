@@ -5,12 +5,14 @@
 #include "../scenes/GameScene.h"
 #include "../scenes/BattleScene.h"
 #include "../scenes/RewardScene.h"
+#include "../scenes/OptionsScene.h"
 #include <iostream>
 #include <random>
 
 Game::Game() : isRunning(false), window(nullptr), renderer(nullptr), font(nullptr),
 currentState(GameState::MENU), currentScene(nullptr), selectedDeckType(DeckType::DAMAGE),
-currentNodeIndex(0), isCleaned(false) {
+currentNodeIndex(0), isCleaned(false),
+windowWidth(Constants::DEFAULT_WINDOW_WIDTH), windowHeight(Constants::DEFAULT_WINDOW_HEIGHT), fullScreen(false) {
 }
 
 Game::~Game() {
@@ -31,7 +33,7 @@ bool Game::init(const char* title, int width, int height) {
         return false;
     }
 
-    window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
     if (!window) {
         std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return false;
@@ -59,6 +61,93 @@ bool Game::init(const char* title, int width, int height) {
     return true;
 }
 
+void Game::reloadFont() {
+    if (font) {
+        TTF_CloseFont(font);
+        font = nullptr;
+    }
+    font = TTF_OpenFont(Constants::FONT_PATH.c_str(), Constants::FONT_SIZE);
+    if (!font) {
+        std::cerr << "Failed to reload font! TTF_Error: " << TTF_GetError() << std::endl;
+    }
+}
+
+void Game::setResolution(int width, int height) {
+    windowWidth = width;
+    windowHeight = height;
+
+    // Destroy the old renderer and window
+    if (renderer) {
+        SDL_DestroyRenderer(renderer);
+        renderer = nullptr;
+    }
+    if (window) {
+        SDL_DestroyWindow(window);
+        window = nullptr;
+    }
+
+    // Recreate the window with the new resolution
+    Uint32 flags = SDL_WINDOW_SHOWN;
+    if (fullScreen) {
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    }
+    window = SDL_CreateWindow("Roguelike Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, flags);
+    if (!window) {
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << "\n";
+        return;
+    }
+
+    // Recreate the renderer
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!renderer) {
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << "\n";
+        return;
+    }
+
+    // Reload the font
+    reloadFont();
+
+    // Update the renderer and font in all scenes
+    if (menuScene) {
+        auto* scene = dynamic_cast<MenuScene*>(menuScene.get());
+        scene->setRenderer(renderer);
+        scene->setFont(font);
+    }
+    if (deckSelectionScene) {
+        auto* scene = dynamic_cast<DeckSelectionScene*>(deckSelectionScene.get());
+        scene->setRenderer(renderer);
+        scene->setFont(font);
+    }
+    if (gameScene) {
+        gameScene->setRenderer(renderer);
+        gameScene->setFont(font);
+    }
+    if (battleScene) {
+        auto* scene = dynamic_cast<BattleScene*>(battleScene.get());
+        scene->setRenderer(renderer);
+        scene->setFont(font);
+    }
+    if (rewardScene) {
+        auto* scene = dynamic_cast<RewardScene*>(rewardScene.get());
+        scene->setRenderer(renderer);
+        scene->setFont(font);
+    }
+    if (optionsScene) {
+        auto* scene = dynamic_cast<OptionsScene*>(optionsScene.get());
+        scene->setRenderer(renderer);
+        scene->setFont(font);
+    }
+
+    // Reload textures in TextureManager
+    textureManager.clear();
+    initializeCards(); // Reload card textures with the new renderer
+}
+
+void Game::setFullScreen(bool fullScreen) {
+    this->fullScreen = fullScreen;
+    SDL_SetWindowFullscreen(window, fullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+}
+
 void Game::handleEvents() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
@@ -78,7 +167,6 @@ void Game::handleEvents() {
         }
     }
 
-    // Check for game over condition
     if (currentState == GameState::GAME) {
         auto* gameScenePtr = dynamic_cast<GameScene*>(currentScene);
         if (gameScenePtr && gameScenePtr->isGameOver()) {
@@ -128,6 +216,7 @@ void Game::setState(GameState newState) {
         deckSelectionScene.reset();
         battleScene.reset();
         rewardScene.reset();
+        optionsScene.reset();
         completedNodes.clear();
     }
     else if (currentState == GameState::DECK_SELECTION) {
@@ -137,6 +226,7 @@ void Game::setState(GameState newState) {
         menuScene.reset();
         battleScene.reset();
         rewardScene.reset();
+        optionsScene.reset();
     }
     else if (currentState == GameState::GAME) {
         if (!gameScene) {
@@ -147,19 +237,30 @@ void Game::setState(GameState newState) {
         deckSelectionScene.reset();
         battleScene.reset();
         rewardScene.reset();
-        // Update progression after transitioning back to GAME state
+        optionsScene.reset();
         gameScene->updateProgression();
     }
     else if (currentState == GameState::BATTLE) {
         menuScene.reset();
         deckSelectionScene.reset();
         rewardScene.reset();
+        optionsScene.reset();
     }
     else if (currentState == GameState::REWARD) {
         currentScene = rewardScene.get();
         menuScene.reset();
         deckSelectionScene.reset();
         battleScene.reset();
+        optionsScene.reset();
+    }
+    else if (currentState == GameState::OPTIONS) {
+        optionsScene = std::make_unique<OptionsScene>(renderer, font, this);
+        currentScene = optionsScene.get();
+        menuScene.reset();
+        deckSelectionScene.reset();
+        gameScene.reset();
+        battleScene.reset();
+        rewardScene.reset();
     }
 }
 
@@ -229,7 +330,6 @@ std::vector<Card> Game::getRewardCards(CardRarity maxRarity, int count) {
     std::vector<Card> rewards;
     std::vector<Card> possibleCards;
 
-    // Collect cards up to the specified max rarity
     for (const auto& card : allCards) {
         CardRarity cardRarity = CardRarity::Common;
         std::string name = card.getName();
@@ -240,7 +340,6 @@ std::vector<Card> Game::getRewardCards(CardRarity maxRarity, int count) {
             cardRarity = CardRarity::Epic;
         }
 
-        // Include the card if its rarity is less than or equal to maxRarity
         if (static_cast<int>(cardRarity) <= static_cast<int>(maxRarity)) {
             possibleCards.push_back(card);
         }
@@ -251,12 +350,10 @@ std::vector<Card> Game::getRewardCards(CardRarity maxRarity, int count) {
         return rewards;
     }
 
-    // Shuffle the possible cards
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(possibleCards.begin(), possibleCards.end(), g);
 
-    // Select the requested number of cards
     int numRewards = std::min(count, static_cast<int>(possibleCards.size()));
     for (int i = 0; i < numRewards; ++i) {
         rewards.push_back(possibleCards[i]);
@@ -266,6 +363,7 @@ std::vector<Card> Game::getRewardCards(CardRarity maxRarity, int count) {
 }
 
 void Game::initializeCards() {
+    allCards.clear();
     allCards.emplace_back(0, 0, "Slash", 8, 2, renderer, font);
     allCards.emplace_back(0, 0, "Strike", 5, 1, renderer, font);
     allCards.emplace_back(0, 0, "Block", 0, 1, renderer, font, CardEffect(CardEffectType::Armor, 5));
@@ -278,6 +376,17 @@ void Game::initializeCards() {
     allCards.emplace_back(0, 0, "Dragon's Breath", 10, 3, renderer, font);
 
     for (auto& card : allCards) {
+        std::string lowercaseName = card.getName();
+        for (char& c : lowercaseName) {
+            c = std::tolower(c);
+        }
+        std::replace(lowercaseName.begin(), lowercaseName.end(), ' ', '_');
+        std::string imagePath = Constants::CARD_PATH + lowercaseName + Constants::CARD_SUFFIX;
+        card.loadImage(imagePath, renderer, textureManager);
+    }
+
+    // Reload selectedDeck cards with the new renderer
+    for (auto& card : selectedDeck) {
         std::string lowercaseName = card.getName();
         for (char& c : lowercaseName) {
             c = std::tolower(c);

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <random>
+#include <sstream>
 
 BattleScene::BattleScene(SDL_Renderer* renderer, TTF_Font* font, const Enemy& e, Game* game)
     : renderer(renderer), font(font), game(game), enemy(e), enemyHPText(nullptr),
@@ -37,6 +38,110 @@ BattleScene::BattleScene(SDL_Renderer* renderer, TTF_Font* font, const Enemy& e,
     updateEnergyText();
     for (int i = 0; i < 3 && !drawPile.empty(); ++i) {
         drawCard();
+    }
+}
+
+void BattleScene::setRenderer(SDL_Renderer* newRenderer) {
+    renderer = newRenderer;
+    textureManager.clear(); // Clear TextureManager to reload card textures
+
+    // Destroy existing textures
+    if (enemyHPText) {
+        SDL_DestroyTexture(enemyHPText);
+        enemyHPText = nullptr;
+    }
+    if (playerHPText) {
+        SDL_DestroyTexture(playerHPText);
+        playerHPText = nullptr;
+    }
+    if (armorText) {
+        SDL_DestroyTexture(armorText);
+        armorText = nullptr;
+    }
+    if (energyText) {
+        SDL_DestroyTexture(energyText);
+        energyText = nullptr;
+    }
+    if (playerText) {
+        SDL_DestroyTexture(playerText);
+        playerText = nullptr;
+    }
+    if (enemyText) {
+        SDL_DestroyTexture(enemyText);
+        enemyText = nullptr;
+    }
+
+    // Update buttons
+    continueButton.setRenderer(renderer);
+    skipTurnButton.setRenderer(renderer);
+
+    // Reload card textures
+    for (auto& card : hand) {
+        std::string imagePath = Constants::CARD_PATH + card.getName() + Constants::CARD_SUFFIX;
+        std::replace(imagePath.begin(), imagePath.end(), ' ', '_');
+        std::transform(imagePath.begin(), imagePath.end(), imagePath.begin(), ::tolower);
+        card.loadImage(imagePath, renderer, textureManager);
+    }
+    for (auto& card : drawPile) {
+        std::string imagePath = Constants::CARD_PATH + card.getName() + Constants::CARD_SUFFIX;
+        std::replace(imagePath.begin(), imagePath.end(), ' ', '_');
+        std::transform(imagePath.begin(), imagePath.end(), imagePath.begin(), ::tolower);
+        card.loadImage(imagePath, renderer, textureManager);
+    }
+    for (auto& card : discard) {
+        std::string imagePath = Constants::CARD_PATH + card.getName() + Constants::CARD_SUFFIX;
+        std::replace(imagePath.begin(), imagePath.end(), ' ', '_');
+        std::transform(imagePath.begin(), imagePath.end(), imagePath.begin(), ::tolower);
+        card.loadImage(imagePath, renderer, textureManager);
+    }
+
+    // Recreate text textures
+    updateHPText();
+    updatePlayerHPText();
+    updateArmorText();
+    updateEnergyText();
+    updateTextTextures();
+}
+
+void BattleScene::setFont(TTF_Font* newFont) {
+    font = newFont;
+    continueButton.updateText(continueButton.getLabel(), font, renderer);
+    skipTurnButton.updateText(skipTurnButton.getLabel(), font, renderer);
+
+    for (auto& card : hand) {
+        card.setFont(font);
+    }
+    for (auto& card : drawPile) {
+        card.setFont(font);
+    }
+    for (auto& card : discard) {
+        card.setFont(font);
+    }
+
+    updateHPText();
+    updatePlayerHPText();
+    updateArmorText();
+    updateEnergyText();
+    updateTextTextures();
+}
+
+void BattleScene::updateTextTextures() {
+    std::stringstream enemySS;
+    enemySS << enemy.name << " HP: " << enemy.hp;
+    SDL_Surface* enemySurface = TTF_RenderText_Solid(font, enemySS.str().c_str(), { 255, 0, 0, 255 });
+    if (enemySurface) {
+        enemyText = SDL_CreateTextureFromSurface(renderer, enemySurface);
+        enemyTextRect = { 50, 50, enemySurface->w, enemySurface->h };
+        SDL_FreeSurface(enemySurface);
+    }
+
+    std::stringstream playerSS;
+    playerSS << "Player HP: " << playerHP << " Energy: " << playerEnergy;
+    SDL_Surface* playerSurface = TTF_RenderText_Solid(font, playerSS.str().c_str(), { 0, 0, 255, 255 });
+    if (playerSurface) {
+        playerText = SDL_CreateTextureFromSurface(renderer, playerSurface);
+        playerTextRect = { 50, game->getWindowHeight() - 50, playerSurface->w, playerSurface->h };
+        SDL_FreeSurface(playerSurface);
     }
 }
 

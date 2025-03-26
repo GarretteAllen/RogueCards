@@ -19,16 +19,22 @@ public:
     void handleEvent(SDL_Event& e);
     SDL_Rect getRect() const { return rect; }
     SDL_Texture* getTexture() const { return texture; }
+    std::string getLabel() const { return label; } // New method
+    void setRenderer(SDL_Renderer* renderer);
+    void updateText(const std::string& newLabel, TTF_Font* font, SDL_Renderer* renderer);
+    void setPosition(int x, int y);
 
 private:
     SDL_Rect rect;
-    SDL_Rect originalRect; 
+    SDL_Rect originalRect;
     std::string label;
     TTF_Font* font;
     SDL_Renderer* renderer;
     SDL_Texture* texture;
     std::function<void()> onClick;
-    bool hovered; 
+    bool hovered;
+    bool needsTextureUpdate;
+    void createTexture();
 };
 
 #endif

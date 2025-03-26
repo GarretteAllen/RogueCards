@@ -26,6 +26,20 @@ DeckSelectionScene::DeckSelectionScene(SDL_Renderer* renderer, TTF_Font* font, G
         }));
 }
 
+void DeckSelectionScene::setRenderer(SDL_Renderer* newRenderer) {
+    renderer = newRenderer;
+    for (auto& button : buttons) {
+        button.setRenderer(renderer);
+    }
+}
+
+void DeckSelectionScene::setFont(TTF_Font* newFont) {
+    font = newFont;
+    for (auto& button : buttons) {
+        button.updateText(button.getLabel(), font, renderer);
+    }
+}
+
 void DeckSelectionScene::render() {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);

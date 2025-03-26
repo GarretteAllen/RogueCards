@@ -2,13 +2,73 @@
 #include "../common/Constants.h"
 #include <SDL_image.h>
 #include <iostream>
+#include <sstream>
 
 Card::Card(int x, int y, const std::string& name, int damage, int energyCost, SDL_Renderer* renderer, TTF_Font* font, CardEffect effect)
-    : rect{ x, y, Constants::CARD_WIDTH, Constants::CARD_HEIGHT }, originalRect{ x, y, Constants::CARD_WIDTH, Constants::CARD_HEIGHT }, name(name), damage(damage), energyCost(energyCost),
-    effect(effect), textTexture(nullptr), imageTexture(nullptr), isDragging(false), isHovered(false), isMagnified(false), hoverStartTime() {
+    : rect{ x, y, Constants::CARD_WIDTH, Constants::CARD_HEIGHT }, originalRect{ x, y, Constants::CARD_WIDTH, Constants::CARD_HEIGHT },
+    name(name), damage(damage), energyCost(energyCost), effect(effect), renderer(renderer), font(font),
+    textTexture(nullptr), imageTexture(nullptr), isDragging(false), isHovered(false), isMagnified(false),
+    hoverStartTime(0), needsTextTextureUpdate(true) {
+}
+
+void Card::setRenderer(SDL_Renderer* newRenderer) {
+    renderer = newRenderer;
+    if (imageTexture) {
+        imageTexture = nullptr; // TextureManager will reload the image texture
+    }
+    if (textTexture) {
+        textTexture = nullptr;
+    }
+    needsTextTextureUpdate = true;
+}
+
+void Card::setFont(TTF_Font* newFont) {
+    font = newFont;
+    if (textTexture) {
+        textTexture = nullptr;
+    }
+    needsTextTextureUpdate = true;
+}
+
+void Card::createTextTexture() {
+    if (textTexture) {
+        textTexture = nullptr;
+    }
+
+    if (!renderer || !font) {
+        std::cerr << "Renderer or font is null in createTextTexture for card: " << name << std::endl;
+        return;
+    }
+
+    // Create a string with the card's details
+    std::stringstream ss;
+    ss << name << "\nDmg: " << damage << "\nCost: " << energyCost;
+    std::string text = ss.str();
+
+    SDL_Color textColor = { 255, 255, 255, 255 }; // White text
+    SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(font, text.c_str(), textColor, Constants::CARD_WIDTH - 10);
+    if (!surface) {
+        std::cerr << "Failed to create surface for card text: " << TTF_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!texture) {
+        std::cerr << "Failed to create texture for card text: " << SDL_GetError() << std::endl;
+        SDL_FreeSurface(surface);
+        return;
+    }
+
+    textTexture = std::shared_ptr<SDL_Texture>(texture, SDL_DestroyTexture);
+    SDL_FreeSurface(surface);
+    needsTextTextureUpdate = false;
 }
 
 void Card::render(SDL_Renderer* renderer, int playerEnergy, int windowWidth, int windowHeight) {
+    if (needsTextTextureUpdate && renderer && font) {
+        createTextTexture();
+    }
+
     SDL_Rect renderRect = rect;
     if (isMagnified && !isDragging) {
         renderRect.w = originalRect.w * 1.5;
@@ -44,6 +104,13 @@ void Card::render(SDL_Renderer* renderer, int playerEnergy, int windowWidth, int
     else {
         SDL_SetRenderDrawColor(renderer, Constants::COLOR_GRAY.r, Constants::COLOR_GRAY.g, Constants::COLOR_GRAY.b, Constants::COLOR_GRAY.a);
         SDL_RenderFillRect(renderer, &renderRect);
+    }
+
+    if (textTexture) {
+        int texW, texH;
+        SDL_QueryTexture(textTexture.get(), nullptr, nullptr, &texW, &texH);
+        SDL_Rect textRect = { renderRect.x + 5, renderRect.y + 5, texW, texH };
+        SDL_RenderCopy(renderer, textTexture.get(), nullptr, &textRect);
     }
 
     SDL_SetTextureAlphaMod(imageTexture.get(), 255);

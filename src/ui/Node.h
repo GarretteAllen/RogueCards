@@ -17,6 +17,8 @@ public:
     ~Node();
     void render() const;
     bool handleEvent(SDL_Event& e);
+    void setRenderer(SDL_Renderer* renderer);
+    void setFont(TTF_Font* font); // New method
 
     SDL_Rect rect;
     std::string label;
@@ -30,9 +32,10 @@ private:
     SDL_Renderer* renderer;
     TTF_Font* font;
     std::function<void()> onClick;
-    mutable SDL_Texture* labelTexture; 
-    mutable SDL_Rect labelRect;
-    void createLabelTexture() const; 
+    SDL_Texture* labelTexture; // Removed mutable
+    SDL_Rect labelRect; // Removed mutable
+    bool needsTextureUpdate; // New flag to defer texture creation
+    void createLabelTexture(); // Removed const
 };
 
 #endif

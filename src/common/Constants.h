@@ -6,8 +6,8 @@
 
 namespace Constants {
     // Window dimensions
-    inline constexpr int WINDOW_WIDTH = 800;
-    inline constexpr int WINDOW_HEIGHT = 600;
+    inline constexpr int DEFAULT_WINDOW_WIDTH = 800;
+    inline constexpr int DEFAULT_WINDOW_HEIGHT = 600;
 
     // Card dimensions
     inline constexpr int CARD_WIDTH = 150;

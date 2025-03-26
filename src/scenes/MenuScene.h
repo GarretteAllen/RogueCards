@@ -14,6 +14,8 @@ public:
     MenuScene(SDL_Renderer* renderer, TTF_Font* font, Game* game);
     void render() override;
     void handleEvent(SDL_Event& e) override;
+    void setRenderer(SDL_Renderer* renderer) override;
+    void setFont(TTF_Font* font) override;
 
 private:
     SDL_Renderer* renderer;
